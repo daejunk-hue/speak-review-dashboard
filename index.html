@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Speak 유저 리뷰 분석 대시보드</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f4f8; color: #1a2332; }
+
+    /* Header */
+    .header { background: linear-gradient(135deg, #1a3a5c 0%, #2e6da4 100%); color: white; padding: 28px 32px; }
+    .header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+    .header p { font-size: 13px; opacity: 0.75; margin-top: 4px; }
+
+    /* Nav tabs */
+    .nav { background: white; border-bottom: 1px solid #e2e8f0; display: flex; gap: 0; padding: 0 32px; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .nav-btn { padding: 14px 20px; font-size: 13px; font-weight: 500; color: #64748b; border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; }
+    .nav-btn:hover { color: #2e6da4; }
+    .nav-btn.active { color: #2e6da4; border-bottom-color: #2e6da4; font-weight: 600; }
+
+    /* Layout */
+    .container { max-width: 1100px; margin: 0 auto; padding: 28px 24px; }
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* Cards */
+    .card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 20px; }
+    .card-title { font-size: 14px; font-weight: 600; color: #475569; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* Summary stats */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 20px; }
+    .stat-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); text-align: center; }
+    .stat-value { font-size: 32px; font-weight: 700; color: #1a3a5c; }
+    .stat-label { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+    .stat-sub { font-size: 11px; color: #cbd5e1; margin-top: 2px; }
+
+    /* Charts row */
+    .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+    @media (max-width: 700px) { .charts-row { grid-template-columns: 1fr; } }
+    .chart-wrap { position: relative; height: 260px; }
+
+    /* Insight boxes */
+    .insights { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 700px) { .insights { grid-template-columns: 1fr; } }
+    .insight-box { border-radius: 10px; padding: 16px 18px; }
+    .insight-box.green { background: #f0fdf4; border-left: 4px solid #22c55e; }
+    .insight-box.red { background: #fff1f2; border-left: 4px solid #f43f5e; }
+    .insight-box h4 { font-size: 12px; font-weight: 600; margin-bottom: 8px; }
+    .insight-box.green h4 { color: #16a34a; }
+    .insight-box.red h4 { color: #e11d48; }
+    .insight-box ul { list-style: none; }
+    .insight-box ul li { font-size: 13px; color: #334155; padding: 3px 0; }
+    .insight-box ul li::before { content: "· "; color: #94a3b8; }
+
+    /* Keyword list */
+    .kw-item { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: background 0.1s; border-radius: 8px; padding: 12px 14px; margin-bottom: 4px; }
+    .kw-item:hover { background: #f8fafc; }
+    .kw-item.selected { background: #eff6ff; }
+    .kw-rank { font-size: 13px; font-weight: 700; color: #cbd5e1; width: 28px; text-align: center; flex-shrink: 0; }
+    .kw-rank.top3 { color: #f0a500; }
+    .kw-label { font-size: 14px; font-weight: 600; color: #1e293b; flex: 1; }
+    .kw-bar-wrap { flex: 2; }
+    .kw-bar-bg { background: #f1f5f9; border-radius: 4px; height: 8px; overflow: hidden; }
+    .kw-bar-fill { background: linear-gradient(90deg, #2e6da4, #60a5fa); height: 100%; border-radius: 4px; transition: width 0.4s; }
+    .kw-count { font-size: 13px; font-weight: 600; color: #2e6da4; width: 50px; text-align: right; flex-shrink: 0; }
+    .kw-stars { font-size: 11px; width: 70px; text-align: right; flex-shrink: 0; color: #f0a500; }
+
+    /* Review panel */
+    .review-panel { background: #f8fafc; border-radius: 12px; padding: 20px; margin-top: 12px; display: none; }
+    .review-panel.open { display: block; }
+    .review-panel h4 { font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 12px; }
+    .review-quote { background: white; border-left: 3px solid #2e6da4; border-radius: 0 8px 8px 0; padding: 14px 16px; font-size: 13px; line-height: 1.7; color: #334155; }
+
+    /* Ad candidates */
+    .ad-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+    .ad-card { background: white; border-radius: 10px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border-top: 3px solid #22c55e; }
+    .ad-card .stars { color: #f0a500; font-size: 12px; margin-bottom: 8px; }
+    .ad-card .content { font-size: 13px; line-height: 1.7; color: #334155; }
+    .ad-card .meta { font-size: 11px; color: #94a3b8; margin-top: 10px; }
+    .ad-badge { display: inline-block; background: #f0fdf4; color: #16a34a; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 20px; border: 1px solid #bbf7d0; }
+
+    /* Search */
+    .search-bar { width: 100%; padding: 10px 16px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; margin-bottom: 16px; outline: none; transition: border 0.15s; }
+    .search-bar:focus { border-color: #2e6da4; }
+
+    /* Category table */
+    .cat-table { width: 100%; border-collapse: collapse; }
+    .cat-table th { text-align: left; padding: 10px 14px; font-size: 12px; color: #94a3b8; font-weight: 600; text-transform: uppercase; border-bottom: 1px solid #f1f5f9; }
+    .cat-table td { padding: 12px 14px; font-size: 13px; color: #334155; border-bottom: 1px solid #f9fafb; }
+    .cat-table tr:hover td { background: #f8fafc; }
+    .cat-pct { font-weight: 600; color: #2e6da4; }
+    .cat-bar { background: #f1f5f9; border-radius: 3px; height: 6px; overflow: hidden; min-width: 80px; }
+    .cat-bar-fill { background: #2e6da4; height: 100%; border-radius: 3px; }
+    .cat-bar-fill.neg { background: #f43f5e; }
+    .cat-bar-fill.gray { background: #cbd5e1; }
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .tag.pos { background: #eff6ff; color: #2563eb; }
+    .tag.neg { background: #fff1f2; color: #e11d48; }
+    .tag.gray { background: #f1f5f9; color: #64748b; }
+
+    .empty { text-align: center; color: #94a3b8; padding: 40px; font-size: 14px; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📊 Speak 유저 리뷰 분석 대시보드</h1>
+  <p>2025-04-13 ~ 2026-04-12 · App Store + Google Play · 3,100개 리뷰</p>
+</div>
+
+<nav class="nav">
+  <button class="nav-btn active" onclick="showTab('summary')">📊 요약</button>
+  <button class="nav-btn" onclick="showTab('keywords')">🔑 키워드 TOP 20</button>
+  <button class="nav-btn" onclick="showTab('ad')">🎯 광고소재 후보</button>
+  <button class="nav-btn" onclick="showTab('category')">📋 카테고리</button>
+</nav>
+
+<div class="container">
+
+  <!-- 요약 탭 -->
+  <div class="section active" id="tab-summary">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">3,100</div>
+        <div class="stat-label">총 리뷰</div>
+        <div class="stat-sub">App Store 500 + Google Play 2,600</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">70.6%</div>
+        <div class="stat-label">4~5★ 비율</div>
+        <div class="stat-sub">4★ 308 + 5★ 2,189</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">292</div>
+        <div class="stat-label">광고소재 후보</div>
+        <div class="stat-sub">전체의 9.4%</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">247</div>
+        <div class="stat-label">TOP 키워드 #1</div>
+        <div class="stat-sub">공부 같지 않은 재미</div>
+      </div>
+    </div>
+
+    <div class="charts-row">
+      <div class="card">
+        <div class="card-title">별점 분포</div>
+        <div class="chart-wrap"><canvas id="ratingChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">카테고리 분포</div>
+        <div class="chart-wrap"><canvas id="categoryChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">마케팅 인사이트</div>
+      <div class="insights">
+        <div class="insight-box green">
+          <h4>✅ 광고에서 활용할 포인트</h4>
+          <ul>
+            <li>공부 같지 않은 재미 (247건) — "공부인데 재밌다"는 반전 서사</li>
+            <li>꾸준히 할 수 있는 구성 (112건) — 부담없이 매일 하게 됨</li>
+            <li>반복 학습 효과 (96건) — 입에 붙는 경험</li>
+            <li>스피킹 자신감 + 영어 두려움 극복 (55건 × 2) — 실력 향상 소셜프루프</li>
+            <li>영어 학원 대체 (29건) — 가성비·대체재 포지셔닝</li>
+          </ul>
+        </div>
+        <div class="insight-box red">
+          <h4>⚠️ 광고에서 건드리면 역풍 포인트</h4>
+          <ul>
+            <li>음성 인식 오류 — 개선요청 1위 키워드</li>
+            <li>발음 인식 불량 — "맞게 말해도 틀렸다고 함"</li>
+            <li>구독료 불만 — "가격이 부담" 언급 다수</li>
+            <li>스마트리뷰 학습 주기 문제 — 반복 학습 기능 불만</li>
+            <li>고급 레벨 콘텐츠 부족 — 중급 이상 이탈 원인</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 키워드 탭 -->
+  <div class="section" id="tab-keywords">
+    <div class="card">
+      <div class="card-title">키워드 TOP 20 — 클릭하면 대표 리뷰 확인</div>
+      <div id="kw-list"></div>
+    </div>
+  </div>
+
+  <!-- 광고소재 후보 탭 -->
+  <div class="section" id="tab-ad">
+    <div class="card">
+      <div class="card-title">광고소재 후보 292건 (상위 60건 표시)</div>
+      <input class="search-bar" type="text" id="ad-search" placeholder="키워드로 검색..." oninput="filterAd()">
+      <div class="ad-grid" id="ad-grid"></div>
+    </div>
+  </div>
+
+  <!-- 카테고리 탭 -->
+  <div class="section" id="tab-category">
+    <div class="card">
+      <div class="card-title">카테고리별 분포</div>
+      <table class="cat-table">
+        <thead>
+          <tr>
+            <th>카테고리</th>
+            <th>리뷰 수</th>
+            <th>비율</th>
+            <th>비율 시각화</th>
+            <th>분류</th>
+          </tr>
+        </thead>
+        <tbody id="cat-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const DATA = {"summary": {"total": 3100, "date_range": "2025-04-13 ~ 2026-04-12", "appstore": 500, "gplay": 2600, "ad_candidates": 292}, "rating_dist": {"1": 336, "2": 96, "3": 171, "4": 308, "5": 2189}, "category_dist": {"공부 같지 않은 재미": 247, "반복 학습 효과": 96, "말하기 실력 향상": 42, "AI 프리톡 긍정 경험": 28, "학원/교재 대비 효율": 23, "발음 교정 효과": 21, "개선요청/불만": 679, "기타": 1964}, "keywords": [{"label": "공부 같지 않은 재미", "count": 247, "pct": 9.9, "ad_util": "⭐⭐⭐⭐⭐", "example_sentence": "늦은 나이에 영어를 시작하는것에 대해 부담이 많이 되어서 여러회화앱들을 설치하고 지우기를 반복하다 스픽을 만나 정말 재미있게 회화를 배우고 있어요. 초보자도 쉽게 배울수 있는 스픽", "example_review": "늦은 나이에 영어를 시작하는것에 대해 부담이 많이 되어서 여러회화앱들을 설치하고 지우기를 반복하다 스픽을 만나 정말 재미있게 회화를 배우고 있어요. 초보자도 쉽게 배울수 있는 스픽 적극적으로 추천합니다."}, {"label": "꾸준히 할 수 있는 구성", "count": 112, "pct": 4.5, "ad_util": "⭐⭐⭐⭐", "example_sentence": "영어공부를 해야지 생각만 하면서 잘 안하게 된게 일상이엇습니다. 스픽을 하고 나니 부담스럽지 않게 간간히 할 수 있어서 좋아요. 시작이 반이라고 부담스럽지 않으니 매일매일 찾아서", "example_review": "영어공부를 해야지 생각만 하면서 잘 안하게 된게 일상이엇습니다. 스픽을 하고 나니 부담스럽지 않게 간간히 할 수 있어서 좋아요. 시작이 반이라고 부담스럽지 않으니 매일매일 찾아서 조금이라도 꾸준히 연습하게 됩니다."}, {"label": "반복 학습 효과", "count": 93, "pct": 3.7, "ad_util": "⭐⭐⭐⭐⭐", "example_sentence": "한문장 한문장 반복해서 익히니입에 붙어 저절로 회화가 조금씩 느는 느낌 입니다.앞으로1년후가 기대됩니다. 용기를 가지고 도전해보세요. 1년이면 어지간한 대화는 가능할거 같아요. 희", "example_review": "한문장 한문장 반복해서 익히니입에 붙어 저절로 회화가 조금씩 느는 느낌 입니다.앞으로1년후가 기대됩니다. 용기를 가지고 도전해보세요. 1년이면 어지간한 대화는 가능할거 같아요. 희망이 보입니다."}, {"label": "스피킹 자신감", "count": 55, "pct": 2.2, "ad_util": "⭐⭐⭐⭐⭐", "example_sentence": "휴대폰으로 듣고 말하고 너무 재밌어요. 남들보다 더 빨리 더 많이 연습해서 1년안에는 꼭 미국 여행 어디를 가던지 남에게 의존하지 않고 혼자 외국인들과 유창하게 대화했으면 하는 바람이에요. 남는게 시간이니 최대한 시", "example_review": "휴대폰으로 듣고 말하고 너무 재밌어요. 남들보다 더 빨리 더 많이 연습해서 1년안에는 꼭 미국 여행 어디를 가던지 남에게 의존하지 않고 혼자 외국인들과 유창하게 대화했으면 하는 바람이에요. 남는게 시간이니 최대한 시간투자해서 꼭 원하는 목표를 이룰거에요. 나이 40먹도록 해외어학연수 경험도 있지만 말한마디 못하고 영어공부도 안하고 그저그런 영어 실력으로 외국인들과 눈빛교환만하고 여행다니듯 남에게 의지하면서 어학연수한 제 자신이 너무 실망스러워요. 꼭 이루지 못한 그 시간 지금이라도 더 열씸히 공부해서 내 자신에게 부끄럽지 않은 사람이 될거에요. 모두 힘내봐요 화이팅!!"}, {"label": "영어 두려움 극복", "count": 55, "pct": 2.2, "ad_util": "⭐⭐⭐⭐", "example_sentence": "따로 시간을 내기 힘들고, 겨우 낼 수 있는 시간이 일정치 않은 바쁜 성인의 입장에서 매우 훌륭합니다. 출퇴근길에 할 수 있는 것은 물론이고 아침에 달리기를 할 때 예전에는 유튜브 영상을 듣곤 했는데 스픽을 만난 후", "example_review": "따로 시간을 내기 힘들고, 겨우 낼 수 있는 시간이 일정치 않은 바쁜 성인의 입장에서 매우 훌륭합니다. 출퇴근길에 할 수 있는 것은 물론이고 아침에 달리기를 할 때 예전에는 유튜브 영상을 듣곤 했는데 스픽을 만난 후로는 뛸 때 스픽을 하니 30여분간 하게 돼서 무척 좋네요. 인공지능 기반이라 인건비가 적을 테니 가격도 부담이 적고요. 물론 교육 내용 자체도 충실하고 실용적입니다. 영어 학습의 패러다임을 바꿀 앱이라고 확신합니다~"}, {"label": "스피킹 습관 형성", "count": 51, "pct": 2.0, "ad_util": "⭐⭐⭐⭐⭐", "example_sentence": "탄탄한 프로그램과 주옥같은 현실감 있는 표현 매우 좋다. 과거 영어를 잘했었다고 자부했었으나, 시간이지나 50대가 되니 알던 표현도 잊어먹고, 매일 쓰는 표현에만 갖혀있어 업무에 답답함이 있었으나 Speak과 함께 ", "example_review": "탄탄한 프로그램과 주옥같은 현실감 있는 표현 매우 좋다. 과거 영어를 잘했었다고 자부했었으나, 시간이지나 50대가 되니 알던 표현도 잊어먹고, 매일 쓰는 표현에만 갖혀있어 업무에 답답함이 있었으나 Speak과 함께 매일매일 표현을 늘려간다면, 다시한번 도약할 수 있을 것 같다.  한가지 부탁하고 싶은 것은, 전체대화의 텍스트를 제공해주었으면 한다, 내가 배운 표현말고 강사들이 질문하는 모든 대화가 제공이 되었으면 한다."}, {"label": "원어민 AI 대화", "count": 44, "pct": 1.8, "ad_util": "⭐⭐⭐⭐", "example_sentence": "AI랑 하는거라 부담도 없고 원어민 발음 들어가며 내 발음도 계속해서 말해볼 수 있어서 이것만 꾸준히 해도 고민이던 영어 스피킹 실력이 좋아질 것 같아서 기대가 돼요!", "example_review": "AI랑 하는거라 부담도 없고 원어민 발음 들어가며 내 발음도 계속해서 말해볼 수 있어서 이것만 꾸준히 해도 고민이던 영어 스피킹 실력이 좋아질 것 같아서 기대가 돼요!"}, {"label": "말하기 실력 향상", "count": 34, "pct": 1.4, "ad_util": "⭐⭐⭐⭐⭐", "example_sentence": "영어권나라에서 나름 오래 살았는데 어느날 내 영어 실력이 한심하다고 느껴 질때쯤 스픽 광고를 여기저기서 봤고 그러나 늘 그렇듯 또 하나의 과대 광고가 아닐까 하고 몇달을 망설인 끝에 마침내 일주일전에 시작을 하게 되", "example_review": "영어권나라에서 나름 오래 살았는데 어느날 내 영어 실력이 한심하다고 느껴 질때쯤 스픽 광고를 여기저기서 봤고 그러나 늘 그렇듯 또 하나의 과대 광고가 아닐까 하고 몇달을 망설인 끝에 마침내 일주일전에 시작을 하게 되었네요. 솔직한 제 소감은 왜 이렇게 오래 망설이다 이제야 하게 되었을까.... 후회가 되네요. 반복해서 말하고 또한 내 발음도 들으면서 교정하고 하니 그동안 원어민과 스몰토크 하는게 두려웠는데 벌써 자신감이 생기네요. 스픽 강력 추천 합니다."}, {"label": "AI 프리톡 활용", "count": 33, "pct": 1.3, "ad_util": "⭐⭐⭐⭐⭐", "example_sentence": "AI와 시나리오 롤플레이를 만들고 대화가 가능하고, 업무 관련 시나리오를 만들어 연습하니 실제 필요한 영어를 익히는데 정말 좋습니다. ㅍ랙ㅌ카도 써봤는데 스픽이 훨씬 대화하기 좋다", "example_review": "AI와 시나리오 롤플레이를 만들고 대화가 가능하고, 업무 관련 시나리오를 만들어 연습하니 실제 필요한 영어를 익히는데 정말 좋습니다. ㅍ랙ㅌ카도 써봤는데 스픽이 훨씬 대화하기 좋다고 느껴지네요."}, {"label": "발음 교정 효과", "count": 29, "pct": 1.2, "ad_util": "⭐⭐⭐⭐⭐", "example_sentence": "ㅋㅋ 넘 재미있네요 ㅎㅎ 원어민 발음을 반복해서 들을 수 있고 내 발음이 무엇이 문제인지 알려주니 대박입니다. 이제 시작이지만 습관처럼 하다보면 일상 회화에 자신감이 생기겠네요.", "example_review": "ㅋㅋ 넘 재미있네요 ㅎㅎ 원어민 발음을 반복해서 들을 수 있고 내 발음이 무엇이 문제인지 알려주니 대박입니다. 이제 시작이지만 습관처럼 하다보면 일상 회화에 자신감이 생기겠네요. 자신있게 외국인과 대화할 수 있는 날을 기대하며 열심히 해 봐야겠어요 ㅎㅎ 진작 알았어야 하는데 엄한데 돈 다 쓴것 같아 😭 어쨋든 최고에요 👍"}, {"label": "영어 학원 대체", "count": 29, "pct": 1.2, "ad_util": "⭐⭐⭐⭐", "example_sentence": "아주 오래전 학생때 그리고 직장생활을 할때부터 나의 로망은 영어회화였죠 교제도 참 많이 사봤고 학원도 끊어봤어요 안 해본 방법이 없었던것 같아요 하지만 영어실력은 늘지않고 늘 제자리 걸음이었어요 이유는 아마도 생활에", "example_review": "아주 오래전 학생때 그리고 직장생활을 할때부터 나의 로망은 영어회화였죠 교제도 참 많이 사봤고 학원도 끊어봤어요 안 해본 방법이 없었던것 같아요 하지만 영어실력은 늘지않고 늘 제자리 걸음이었어요 이유는 아마도 생활에 영어가 적용되지 못했기 때문인거 같아요 공부 해 놓고도 쓰질 않으니 금세 까먹고 말죠 그리고 포기상태로 세월이 흘러 나이가 60이 넘어가니 이젠 정말 하고 싶어도 엄두가 안나 더군요 아는사람 이름도 생각이 잘 안나는 나이에 영어는 꿈도 못꾸겠더군요 그러다가 심장수술로 병원에 입원해 있다가 심심해서 유튜브로 영어연습좀 하게 됬는데 우연히 스픽을 만나게 된거 같아요 그땐 스픽이 뭔지도 몰랐는데 돈내는거 같아 얼른 앱을 지웠었죠 어차피 이젠 늦었는데 유료앱으로 공부하긴 아깝다고 생각했어요 퇴원해서 영어는 까많게 잊고 있었는데 스픽에서 무료체험 안내 문자가 오더군요 한달간 무료로 이용해 보는건데 공짜니까 한번 해봤죠 그러다가...더 못쓰는군요 ㅋ"}, {"label": "동기부여 시스템", "count": 25, "pct": 1.0, "ad_util": "⭐⭐⭐⭐", "example_sentence": "매일 꾸준하게 하는 습관을 만들어준다. 내가 얼마나 성장했는지는 아직 의문임. 그래도 나 자신과 스픽을 믿고 최선을 다해보려함. 선생님들이 너무좋고 동기부여시스템도 나름 좋다고생걱", "example_review": "매일 꾸준하게 하는 습관을 만들어준다. 내가 얼마나 성장했는지는 아직 의문임. 그래도 나 자신과 스픽을 믿고 최선을 다해보려함. 선생님들이 너무좋고 동기부여시스템도 나름 좋다고생걱함. 매일 꾸준하게 하는 습관을 만들어준다. 내가 얼마나 성장했는지는 아직 의문임. 그래도 나 자신과 스픽을 믿고 최선을 다해보려함. 선생님들이 너무좋고 동기부여시스템도 나름 좋다고생걱함."}, {"label": "편리한 접근성", "count": 24, "pct": 1.0, "ad_util": "⭐⭐⭐", "example_sentence": "진짜 좋고 영어공부하는 데 이만한 어플이 없는 것 같습니다. 현재 유료 영어 어플만 3개 돌리는 중인데 스픽이 젤 좋아요. 그 중 가장 좋은 건 출퇴근 시간 운전하면서 하는 겁니다. 그런데 강사님 목소리들은 모기만한", "example_review": "진짜 좋고 영어공부하는 데 이만한 어플이 없는 것 같습니다. 현재 유료 영어 어플만 3개 돌리는 중인데 스픽이 젤 좋아요. 그 중 가장 좋은 건 출퇴근 시간 운전하면서 하는 겁니다. 그런데 강사님 목소리들은 모기만한 소리인데 중간에 효과음이나 AI소리는 미친듯이 커서 블루투스로 하는데 진짜 소리에 놀라 기절하겠어요. ㅠㅠ 강사님 소리에 맞춰 볼륨 올리면 진짜 효과음은 전쟁나버림... 제발 따로 소리 조절할 수 있게 해주시거나 아니면 둘 소리 밸런스 좀 맞춰주세요 ㅋㅋㅋ.. ㅠㅠ ㅋㅋ 그리고 핸즈프리로 할 때 챕터 좀 더 빨리 넘어가게 조절할 수 있게 해주시고 AI음성도 배속으로 할 수 있음 좋을 것 같습니다."}, {"label": "장기 사용 신뢰", "count": 22, "pct": 0.9, "ad_util": "⭐⭐⭐⭐", "example_sentence": "영어권나라에서 나름 오래 살았는데 어느날 내 영어 실력이 한심하다고 느껴 질때쯤 스픽 광고를 여기저기서 봤고 그러나 늘 그렇듯 또 하나의 과대 광고가 아닐까 하고 몇달을 망설인 끝", "example_review": "영어권나라에서 나름 오래 살았는데 어느날 내 영어 실력이 한심하다고 느껴 질때쯤 스픽 광고를 여기저기서 봤고 그러나 늘 그렇듯 또 하나의 과대 광고가 아닐까 하고 몇달을 망설인 끝에 마침내 일주일전에 시작을 하게 되었네요. 솔직한 제 소감은 왜 이렇게 오래 망설이다 이제야 하게 되었을까.... 후회가 되네요. 반복해서 말하고 또한 내 발음도 들으면서 교정하고 하니 그동안 원어민과 스몰토크 하는게 두려웠는데 벌써 자신감이 생기네요. 스픽 강력 추천 합니다."}, {"label": "타 앱 대비 우위", "count": 22, "pct": 0.9, "ad_util": "⭐⭐⭐", "example_sentence": "다른 영어회화 어플을 같이 이용해보았으나, 스픽이 제일 깔끔하고 컨텐츠도 좋은듯합니다.", "example_review": "다른 영어회화 어플을 같이 이용해보았으나, 스픽이 제일 깔끔하고 컨텐츠도 좋은듯합니다."}, {"label": "실생활 표현 학습", "count": 21, "pct": 0.8, "ad_util": "⭐⭐⭐", "example_sentence": "영어 나름 잘했다고 생각해서 별 생각 없이 외국 갔다가 충격받아서 다시 공부합니다. 머릿속에서만 맴돌고 혀가 굳어서 쉬운 내용도 실제 대화가 안되더라구요..! 더듬거리게 되고 부족", "example_review": "영어 나름 잘했다고 생각해서 별 생각 없이 외국 갔다가 충격받아서 다시 공부합니다. 머릿속에서만 맴돌고 혀가 굳어서 쉬운 내용도 실제 대화가 안되더라구요..! 더듬거리게 되고 부족한 사람 같이 보이게 돼요 ㅠㅠ 짧은 문장 연습 - 실제 사람이 나오는 실전 대화 순서라 만족스럽네요. 여행 전 외국 단체 액티비티 있으신 분들 꼭 하고 가세요! 스피킹 약한 한국인한테 꼭 필요한 앱입니다!"}, {"label": "단기 효과 체감", "count": 21, "pct": 0.8, "ad_util": "⭐⭐⭐⭐⭐", "example_sentence": "진짜 좋고 영어공부하는 데 이만한 어플이 없는 것 같습니다. 현재 유료 영어 어플만 3개 돌리는 중인데 스픽이 젤 좋아요. 그 중 가장 좋은 건 출퇴근 시간 운전하면서 하는 겁니다. 그런데 강사님 목소리들은 모기만한", "example_review": "진짜 좋고 영어공부하는 데 이만한 어플이 없는 것 같습니다. 현재 유료 영어 어플만 3개 돌리는 중인데 스픽이 젤 좋아요. 그 중 가장 좋은 건 출퇴근 시간 운전하면서 하는 겁니다. 그런데 강사님 목소리들은 모기만한 소리인데 중간에 효과음이나 AI소리는 미친듯이 커서 블루투스로 하는데 진짜 소리에 놀라 기절하겠어요. ㅠㅠ 강사님 소리에 맞춰 볼륨 올리면 진짜 효과음은 전쟁나버림... 제발 따로 소리 조절할 수 있게 해주시거나 아니면 둘 소리 밸런스 좀 맞춰주세요 ㅋㅋㅋ.. ㅠㅠ ㅋㅋ 그리고 핸즈프리로 할 때 챕터 좀 더 빨리 넘어가게 조절할 수 있게 해주시고 AI음성도 배속으로 할 수 있음 좋을 것 같습니다."}, {"label": "실력 향상 체감", "count": 20, "pct": 0.8, "ad_util": "⭐⭐⭐⭐⭐", "example_sentence": "맞춤형으로 복습이 잘 되도록 구성되어 있고, 말문이 자연스럽게 트이도록 해주네요. 친절하고 다양한 구성에 매일 매일 하고 있어 실력이 느는게 느껴집니다.", "example_review": "맞춤형으로 복습이 잘 되도록 구성되어 있고, 말문이 자연스럽게 트이도록 해주네요. 친절하고 다양한 구성에 매일 매일 하고 있어 실력이 느는게 느껴집니다."}, {"label": "AI 즉각 피드백", "count": 18, "pct": 0.7, "ad_util": "⭐⭐⭐⭐", "example_sentence": "다양한 표현을 알려주고, 즉각적인 첨삭이 되어 기억에 오래 남아요", "example_review": "다양한 표현을 알려주고, 즉각적인 첨삭이 되어 기억에 오래 남아요"}, {"label": "말문이 트임", "count": 9, "pct": 0.4, "ad_util": "⭐⭐⭐⭐⭐", "example_sentence": "마음먹고 스픽 어플만 공부해도 원어민 되겠네요. 저는 2년째 스픽으로 공부하고 있습니다. 꾸준히 힘들어도 포기하지 말고, 나를 사랑하는 마음으로 공부 하다보면 어느새 제 입에서 줄줄줄 영어가 나오네요. 요즘 시대 너", "example_review": "마음먹고 스픽 어플만 공부해도 원어민 되겠네요. 저는 2년째 스픽으로 공부하고 있습니다. 꾸준히 힘들어도 포기하지 말고, 나를 사랑하는 마음으로 공부 하다보면 어느새 제 입에서 줄줄줄 영어가 나오네요. 요즘 시대 너무 좋아졌어요. 저는 중1때 처음 영어를 배웠던 시대에 태어났었는데… 요즘 아이들 맘만 먹으면 이렇게 잘 공부 할수 있어요. 가격또한 맘에 쏙 듭니다. 부담이 없는데 학습의 질은 높아요-!!!"}], "ad_candidates": [{"content": "매일 수업할 수 있고 복습을 겸하게 되는 시스템이라 좋아요 2026년 열심히 해 보겠어요~", "rating": 5, "date": "2026-03-29", "source": "Google Play"}, {"content": "흥미롭네요. 실전 영어대화에선 말이 안 나오는 경우가 많은데 영어회화에 도움이 될거 같아오", "rating": 5, "date": "2025-09-22", "source": "Google Play"}, {"content": "너무 재밌어요 원어민 발음으로 들을수 있고 따라할수 있어 재미있어요 study is fun", "rating": 5, "date": "2025-09-19", "source": "Google Play"}, {"content": "내 옆에 원어민강사 데리고 다니는 느낌. 프리토킹할 때 ai가 내 말을 잘 받아주고 고쳐줌", "rating": 5, "date": "2025-09-10", "source": "Google Play"}, {"content": "반복적으로 표현을 연습할 수 있어서 좋아요. 원어민과 직접 대화하는 느낌이 들어서 좋네요.", "rating": 5, "date": "2025-08-02", "source": "Google Play"}, {"content": "2달째 매일하고 있습니다. 입으로 소리내고 다양한 방식으로 연습하다보니 지루할 틈이 없네요.", "rating": 5, "date": "2026-02-28", "source": "Google Play"}, {"content": "돈을 내야 하지만 돈 값을 해서 좋음. 영어 회화를 익혀야 한다면 과감하게 돈을 쓰는게 좋음", "rating": 5, "date": "2025-09-04", "source": "Google Play"}, {"content": "연습하다보니 조금씩 실력이 좋아지는거같아요. 꾸준히 하다보면 나도 모르게 레벨업 되어 있을듯", "rating": 5, "date": "2025-07-24", "source": "Google Play"}, {"content": "자주만 사용한다면 너무 좋아요. 학원갈 필요없습니다. 다만 발음 인식이 잘 안될때가 있어요.", "rating": 5, "date": "2025-04-23", "source": "Google Play"}, {"content": "엄청 쉬운단계부터 차근차근 따라해나가니 부담없고 재밌어요! 강의가 짧아서 틈날때 하기 좋아요", "rating": 5, "date": "2025-04-13", "source": "Google Play"}, {"content": "티원이 광고해서 깔아봤는데 밖에 안나가고 스피킹연습할 수 있어서 좋아요 친절한 내용도 좋습니다", "rating": 5, "date": "2025-09-01", "source": "App Store"}, {"content": "발음이 나쁜데 여러번 반복 연습할수 있어 좋으나 단어도 많이 알지 못해 학습이 쉽지 않습니다.", "rating": 5, "date": "2026-03-07", "source": "Google Play"}, {"content": "처음에 궁금하기도하고해서 시작했다가 지금은 한문장씩 배울때마다 희열을 느낍니다. 꼭 추천합니다", "rating": 5, "date": "2026-02-17", "source": "Google Play"}, {"content": "쉽게 따라할수 있고 AI 프리토킹을 여러가지 주제로 할 수있고 피드백도 해줘서 너무 유용해오.", "rating": 5, "date": "2026-01-14", "source": "Google Play"}, {"content": "정말 학습영어로 최고입니다. 영어를 부담없이 할수있고 원어민 체험으로 최고의 학습커리큘럼이네요", "rating": 5, "date": "2025-10-30", "source": "Google Play"}, {"content": "사용자 레벨에 맞쳐 쉽게 설명줘요 스피킹이 자신감이 없어는데 스피킹을 하다본니 좋아지고 있었요", "rating": 5, "date": "2025-08-10", "source": "Google Play"}, {"content": "다양한 표현을 반복하여 말을 할 수 있고 단순 지문보고 따라하는게 아니라서 생각을 많이 하게됨", "rating": 5, "date": "2025-05-22", "source": "Google Play"}, {"content": "꾸준하게 할 수있게 도와주는거 같아요. 왕초보라 프리토킹이 힘들긴한데 점차 실력이 늘어나겠죠!", "rating": 5, "date": "2025-04-21", "source": "Google Play"}, {"content": "쉬운 회화도 막상 하려면 어려운데 계속 반복해서 해보니 조금씩 나아지고 있습니다. 감사드립니다", "rating": 5, "date": "2025-04-20", "source": "Google Play"}, {"content": "반복 학습으로 인한 복습효과와 원어민과 직접 얘기하는 듯한 느낌을 받을 수 있어 좋았습니다!!!", "rating": 5, "date": "2026-02-15", "source": "Google Play"}, {"content": "회화??좋은경험 꾸준히 하다보면 어느새 저도 영어로 자~ 알 말할수 있있겠어요ㆍ 기대됩니다 ^^", "rating": 5, "date": "2026-02-07", "source": "Google Play"}, {"content": "오늘 처음했는데 문법 및 상황에 맞는 문장 및 발음을 알수 있어서 너무 좋네요 열심히 해보려구요", "rating": 5, "date": "2025-12-24", "source": "Google Play"}, {"content": "확실히 다른앱들이랑은 다르게 하는맛이있고 정말 실생활에 필요한 표현들을 많이 알려줘서 좋은것같다", "rating": 5, "date": "2025-11-09", "source": "Google Play"}, {"content": "아직 결제하기전이라 가볍게 하고있는데 어색했던 본인의 발음과 초딩실력 영어에 자신감을 줍니다..", "rating": 5, "date": "2025-04-27", "source": "Google Play"}, {"content": "랭킹 시스템으로 은근한 경쟁심을 유도해서 매일매일 열심히 하게되네요. 내용도 재밌고 유익합니다.", "rating": 5, "date": "2025-04-13", "source": "Google Play"}, {"content": "그냥 따라하기만 하는게 아니라 상황에 맞춰 대답을 생각해서 말하는 습관이 저절로 들어요. 좋네요.", "rating": 5, "date": "2026-01-03", "source": "Google Play"}, {"content": "기초영어 처음 시작하는데 어렵지 않고 따라하기 부담없어요. 꾸준이 해서 좋은결과를 얻고 싶어요~~", "rating": 5, "date": "2025-12-12", "source": "Google Play"}, {"content": "스픽 사용하고 영어로 말하기가 자연스러워 졌어요. 매일 조금씩 실력이 늘어가고 있어서 신기해요^^", "rating": 5, "date": "2025-06-16", "source": "Google Play"}, {"content": "영어 습득에 실제 도움이 되는지는 모르겠지만 일단 매일 하기 편합니다. 즉각적인 피드백도 좋고요.", "rating": 5, "date": "2025-06-08", "source": "Google Play"}, {"content": "자주 틀리는 표현들을 반복적으로 복습하고 따라하게 해 주는 시스템이 영어학습에 매우 효과적입니다.", "rating": 5, "date": "2025-04-22", "source": "Google Play"}, {"content": "매일매일 즐겁게 하고 있어요. 아직 발음을 100프로 다 걸러주진 못하지만 그래도 이정도도 충분해요", "rating": 5, "date": "2026-01-29", "source": "Google Play"}, {"content": "반복해서 말하고 중요하거나 나에게 맞는 표현들은 저장해서 또 복습하니 좋아요. 조금씩 느는것 같아요", "rating": 5, "date": "2026-01-13", "source": "Google Play"}, {"content": "수강취소했다 최근에 다시 스픽으로 공부하고 있어요. 이것만큼 회화공부많이 할수 있는건 없는거 같아요", "rating": 5, "date": "2025-12-08", "source": "Google Play"}, {"content": "매일 적은 시간을 들여서도 말하는 습관을 들을 수 있어서 좋아요. 하루에 틈틈히 공부하고 있습니다.", "rating": 5, "date": "2025-08-17", "source": "Google Play"}, {"content": "머리속에서만 맴돌던 영어를 입으로 바로바로 말할 수 있는 연습을 부끄럽지 않게 할수 있어서 좋아요.", "rating": 5, "date": "2025-07-07", "source": "Google Play"}, {"content": "비슷한 문장을 여러 번 반복하게 하네요. 공부가 잘 될 것 같아요. 어디까지가 무료인지 궁금하네요.", "rating": 5, "date": "2025-06-17", "source": "Google Play"}, {"content": "쉽게 영어로 말하는 연습을 할 수 있어서 좋아요. 시간에 상관없이 아무때나 공부할수 있어서 편해요.", "rating": 5, "date": "2025-05-31", "source": "Google Play"}, {"content": "하루하루 연습하면서 언제간 더 나아질수 있다는 기대로 열심히 하게 됩니다. 많은 도움이 될것 같아요", "rating": 5, "date": "2025-04-16", "source": "Google Play"}, {"content": "힘든 발음 연습에 많은 도움이 됩니다. 하지만 요번 색션은 앱이 버벅거리네요. 사용자가 많은걸까요.", "rating": 5, "date": "2025-04-15", "source": "Google Play"}, {"content": "강의가 너무 이해하기 쉽고 다양한 액티비티를 통해 연습할 수 있어서 즐겁게 영어를 배울 수 있습니다.", "rating": 5, "date": "2026-01-25", "source": "Google Play"}, {"content": "오우 첫날인데 자신감이 생겨요 점점 더 뭔가 할수있다라는 마음이 생길꺼같아서 기대됩니다 열심히해볼께요", "rating": 5, "date": "2025-09-11", "source": "Google Play"}, {"content": "일단 가성비 짱에다 계속 말할 수 있게 하네요~ 재밌어요~ 매일 10분~20씩만 해도 좋을 것 같아요", "rating": 5, "date": "2025-07-30", "source": "Google Play"}, {"content": "무엇보다 재미있어요. 시대에 맞는 단어도 배우고요. 꾸준히 한다면 영어가 늘것같아요. 열심히 해볼게요", "rating": 5, "date": "2025-07-07", "source": "Google Play"}, {"content": "자연스럽고 즐겁게 공부가 가능합니다. 공부하는거 맞나 싶은데 분명히 원어민 급이 될거에요 확싱합니다!", "rating": 5, "date": "2025-07-02", "source": "Google Play"}, {"content": "원하는 시간에 자신의 실력에 맞게 AI와 대화를 나눌 수 있습니다. 부족한 표현은 바로 수정해줍니다.", "rating": 5, "date": "2025-06-13", "source": "Google Play"}, {"content": "AI의 발전이 얼마나 됐는지 체감할 수 았고 발화력이나 대화의 자연스러움 등을 생각할때 도움이 많이 됨", "rating": 5, "date": "2026-04-03", "source": "Google Play"}, {"content": "구어체 자체를 연습할 수 있어서 좋습니다. 복습에 대한 콘텐츠가 더 잘 갖춰진다면 더욱 좋읗 것 같네요", "rating": 5, "date": "2026-03-02", "source": "Google Play"}, {"content": "영어회화를 배우고 싶으십니까? 그러면 스픽입니다! 결코 후회하지 않으실 겁니다. 저는 너~무 좋습니다.", "rating": 5, "date": "2025-11-26", "source": "Google Play"}, {"content": "꾸준히 하다보면 언젠가 좋은날 오겠지란 맘으로 하고있습니다 일단 계속 말을하는 습관면에서는 매우 좋아요", "rating": 5, "date": "2025-08-23", "source": "Google Play"}, {"content": "원어민 발음과 나의 발음을 확인하고 반복적인 발음연습에 왕초보인 저도 점차 따라하게 됩니다 감사합니다.", "rating": 5, "date": "2025-08-19", "source": "Google Play"}, {"content": "영어 공부에 많은 도움이 돼요! 특히 스피킹! 근데 제 발음을 못알아들을때 쪼꼼 답답해요 ㅠㅠㅋㅋㅋㅋㅋ", "rating": 5, "date": "2025-08-12", "source": "Google Play"}, {"content": "매일매일 조금씩 늘어나는 스피킹 실력에 감탄하고 갑니다. 요즘 트렌드헤 맞는 모바일 렉처로는 최강이네요", "rating": 5, "date": "2025-07-14", "source": "Google Play"}, {"content": "맨 아래쪽 탭에 롬, 프리톡 다음 복습할수있는 '리뷰' 대신 '저장' 탭밖에 안보이는데 이거 왜이런가요", "rating": 5, "date": "2025-06-07", "source": "Google Play"}, {"content": "일단 재밌어요 강의 중간에 말하고 반복적으로 말하고 습관 처럼 말할 수 있게 하네요 꾸준히 해볼게요 ㅎㅎ", "rating": 5, "date": "2026-04-05", "source": "Google Play"}, {"content": "말하기가 아직 부끄러운 단계입니다. 누군가를 의식하지 않고 영어를 말하고 연습할 수 있어 도움이 됩니다.", "rating": 5, "date": "2026-03-13", "source": "Google Play"}, {"content": "기초부터 탄탄히!! 나도 곧 영어회화를 할 수 있는 자신감과 기쁨이 나를 더욱 자극해서 열심히 하게됩니다", "rating": 5, "date": "2026-02-15", "source": "Google Play"}, {"content": "반복 학습이 많은 도움을 주고 관용구를 활용하면서 점점 잔신감이 생기는듯 해요 선택 잘 했다고 생각해요.", "rating": 5, "date": "2026-02-15", "source": "Google Play"}, {"content": "왕초보자 따라서만 해도 실력이 쌓여가는걸 느끼네요 좋은 앱 입니다. 누구나 영어 공부 할수 있어요. 최고", "rating": 5, "date": "2025-09-06", "source": "Google Play"}, {"content": "꾸준히 하는 영어앱이 없었는데 이 앱은 꾸준히 하게 되네요. 끝까지 가면 원어민 실력을 가질 수 있겠죠?", "rating": 5, "date": "2025-07-27", "source": "Google Play"}, {"content": "너무 좋아요~시간 나는데로 연습하기 좋은거같아요.문장속에 단어뜻도 확인할수 있으면 너무 더좋을거같아요~~", "rating": 5, "date": "2025-06-18", "source": "Google Play"}], "cat_summary": {"개선요청/불만": [{"content": "이전엔 말 잘 알아듣곤 했는데 지금은 내 말 자체를 너무 못알아들음.. 전혀 다르게 인식해버려서 대화가 갑자기 튀어버림;; 이잔 대회로 돌아가는 기능도 있으면 좋겠고.. 구독 끊을까 심각하게 고민중..", "rating": 5, "date": "2026-03-05"}, {"content": "그냥 폰으로 말하는건 음성인식 되는데\n에어팟이나 헤드셋을 착용하면\n인식률이 너무 떨어지는데 ㅋㅋㅋ\n고객센터에 문의하고 하라는거 다 해봐도 안되는데 해결좀 해주세요 ㅋㅋ\n무료도 아니고 돈 내고 쓰는데 이런 서비스 받으면 기분이 어떻겠어요", "rating": 5, "date": "2026-03-01"}, {"content": "진짜 공부가 잘 되는 어플이라고 생각합니다. 근데 어플 안에서 튜터 AI와 영어로 답하면서 실력을 향상시키고 싶은데, 뜻을 모르겠어서 꾹 눌러보니 영어 해석 기능이 없어서 불편해요. 해석 기능 추가 부탁드립니다.🙏", "rating": 5, "date": "2026-02-28"}, {"content": "환불부탁드립니다", "rating": 5, "date": "2026-02-16"}, {"content": "자체는 잘 사용중입니다! 다만 이번에 결제할 때 매달 결제인줄 알고 했는데 연간으로 1년치가 결제 되었습니다! 환불 부탁드립니다!!", "rating": 5, "date": "2026-02-12"}], "기타": [{"content": "너무 재밋어요 배우는 표현들이 다 이해가 잘 가고 너무 좋은거같아용!!!", "rating": 5, "date": "2026-04-10"}, {"content": "그냥 잼있고 굳임", "rating": 5, "date": "2026-04-06"}, {"content": "좋아요", "rating": 5, "date": "2026-04-01"}, {"content": "좋아요", "rating": 5, "date": "2026-03-24"}, {"content": "저는 구독했지했습니다. 그런데 왜 계속 결제가 되는거죠??? 어디에 문의를 해야하나요? 답변 부탁드립니다.", "rating": 5, "date": "2026-03-24"}], "🗣️ 말하기 실력 향상": [{"content": "너무너무 유용하게 잘 쓰고있어요💝 \n처음에 외국인 분이랑 말하는거 굉장히 어렵고 불편하고 힘들게 느껴졌는데 이 앱을 사용하다보니 더 자신감이 생긴 것 같아요！", "rating": 5, "date": "2026-04-02"}, {"content": "이 어플 덕분에 스피킹 실력이 많이 향상된 느낌이 들어요! 어디서든 공간의\n제약을 받지 않는다는 장점이 굉장히 크게 작용하는 것 같아요\n하지만 이동할때나, 조용히 듣고 싶을때 들을 수 있는 팟캐스트 같은 기능이 추가되면 너무 좋을 것 같아요! \n더불어 문법이나 단어를 정리해둔 개념책 기능도 있으면 너무너무 도움될 것 같아요! \n스픽 앱 할인때 사서 너무 잘", "rating": 5, "date": "2026-02-25"}, {"content": "이거하고 실력 너무많이 늘었어요. 꼭해보세요. Duolingo그런거 소용없어요. 유료 하실거면 이거로 하세요!", "rating": 5, "date": "2025-12-09"}, {"content": "중년도 하다보면 자신감이 생기는 거 같음. 딱 내수준이다 싶음.. 하지만 아이패드 에어 m3 유저인데 가끔 튕기는건 문제 있네.", "rating": 5, "date": "2025-08-24"}, {"content": "아니 제가 5살 때 부터 영어를 학원에서 배웠는데 그때는 그냥 좋았는데 스픽 하니까 진짜 실력많이 늘었어요", "rating": 5, "date": "2025-06-16"}], "🔄 반복 학습 효과": [{"content": "안녕하세요 스픽 잘 사용중입니다. 리뷰 기능을 통해서 반복 학습하는 점이 너무 좋은데요, 프리톡에서 배운 표현들도 스마트리뷰에 추가되어 반복 학습 할 수 있으면 더 좋겠습니다\n\n추가로, 스마트리뷰에서 숙련도가 100프로로 되면 아예 365일 후에 다시 복습한다고 하는데.. 기억망각주기에 의해서 복습 주기를 정하시면 더 좋겠어요. ANKI 앱처럼요", "rating": 5, "date": "2026-04-01"}, {"content": "리뷰묻힐까봐 5점줬어요 제가 옛날에 거의5년 전쯤 3개월 무료를 사용해봤었는데 좋았어서 이번에 영어공부할때 다른 어플 고민도안하고 스픽을 선택했습니다\n근데 예전에비해 제가 중간에 빼먹은 a the 이런 단어나 발음이 틀렸을때 디테일하게 몇번 연습하게해주는 것들이 없어지고 그냥 다 맞다고 넘어가서 당황했고\n복습이나 반복도 너무 적어서 외우거나 익숙해질틈없이 ", "rating": 5, "date": "2026-03-14"}, {"content": "-별 다섯개는 글 묻힐까봐 줬습니다-\n스마트 리뷰 틀린 문장이 너무 많아졌습니다\n몇개 간간히 보이긴 했는데 귀찮아서 넘어갔는데\n자꾸 과하게 나오네요\n오늘 보인것만 대충 적어볼게요\n\n(1)\nCan you tell me how much is the art gallery?\n-> 간접의문문인데 틀림\nThis allergies are killing me\n-> 복수형", "rating": 5, "date": "2026-03-02"}, {"content": "반복 학습을 통해 문장 암기할 수 있고 발음을 익힐 수 있어 좋아요.", "rating": 5, "date": "2026-01-09"}, {"content": "스마트 리뷰가 업데이트로 바뀌면서 최악이 되었습니다. 기존에는 학습 주기에 따라 사용자에게 리뷰 학습을 할 수 있게 해 줬었는데, 지금은 한번 달성도 100%이 되면 앱 자체적으로 반복 학습 주기를 1년으로 처리해버리니, 한두번 복습하면 사용자는 금방 까먹게 됩니다. 그런 표현들은 스스로 찾아보며 복습도 못 하게 됩니다. 배웠다는 사실 자체를 잊어버린 뒤니", "rating": 5, "date": "2025-11-26"}], "😄 재미·습관 형성": [{"content": "잘 외워지고 정말 재미있어요\n이걸로 일본어앱만들어도 될 듯", "rating": 5, "date": "2026-03-19"}, {"content": "진짜 너무너무 재밌어요 공부가 이렇게 재밌을 절이야 원래 영어에 감흥 없었는데 너무 잘 설명해주시고 칭찬 너무 열정적이게 해주셔서 더더 좋아요 진짜 망하지 마세요 글고 스픽 설날때까지 이벤트 해서 잠깐 놀러와봤는데 이벤트 끊기면 계속 생각날고 같아서 구독 하려고요! 가끔 제 발음이랑 기억력 때문에 짜증나긴 한데 근데? 앱이 제 스트레스 막아줌ㅋ 진짜 감사해", "rating": 5, "date": "2026-02-14"}, {"content": "오늘 첫날 인데 재밌어요!앞으로 기대되요!", "rating": 5, "date": "2026-01-05"}, {"content": "처음에는 이걸 꾸준히 할만한 재미라던가 그런 요소가 있을까 싶었는데\n계속 진행하다보니 영어로 말하는 재미가 붙고 막 말해도 알아서 교정 해주는 기능 덕분에 알아가는 문법이 정말 많습니다\n가격이 부담 된다는 분들 간혹 보이시던데\n게임할 돈,군것질 할 돈 조금 모아서라도 해보세요\n생각보다 재밌습니다ㅋㅋㅋ\n단, 혼자 있을 때에만..", "rating": 5, "date": "2025-12-28"}, {"content": "3일차에요 어렵지 않고 재밌어요👍", "rating": 5, "date": "2025-12-28"}], "🤖 AI 프리톡 긍정 경험": [{"content": "다 기능은 좋아서 잘쓰고 있는데 프리톡에서 사용자들이 하트 구걸 갖고 싸움박질하고 난리네요…프리톡이 있는 이유가 없어졌어요..\n시나리오에 자기가 하고 싶은 말만 적는 그런 온라인 채팅방이 되버렸네요. 그리고 몇몇 분들은 시나리오 주제에 쌍욕을 써요,,\n이거 어떻게 해결방안 없을까요? 다른 이용자들에게 피해가 있을것 같아요.. 조치 취해주시길", "rating": 5, "date": "2026-02-12"}, {"content": "영어학원 없애고 스픽을 해도 문제가 아닐 듯 ㅋㅋ (이죄명 관련 프리톡 빼고..)", "rating": 5, "date": "2025-10-13"}, {"content": "스픽 영어공부에 도움 정말 많이되는 것 같아요. 그래서 잘 쓰고 있었는데 요즘 사람들이 스픽 프리톡에서 서로 소통하고 싸우고, 욕하면서 공부하는데 방해가 되네요. 빨리 조치해 주시기 바랍니다. 그리고 닉네임 띄어쓰기가 되면 좋겠네요.", "rating": 5, "date": "2025-09-26"}, {"content": "프리톡 파트에서 짧은 대화 뿐만 아니라 긴 대화 또한 가능하게 설정해주셨으면 좋겠습니다. 3-4분 가량의 대화는 너무 짧게 느껴지는것 같습니다. 시간 제한을 1시간 정도까지 끊기지 않고 할 수 있게 업데이트 한다면 많은 도움이 될것 같네요.", "rating": 5, "date": "2025-08-22"}, {"content": "오 좋다. AI 활용한 회화 어플이니, 예문 가짓수도 엄청 많고 발음 인식해서 연습도 시켜줌. 그리고 AI랑 여러 시나리오로 프리토크 하는거도 좋음.", "rating": 5, "date": "2026-03-25"}], "🎤 발음 교정 효과": [{"content": "AI랑 하는거라 부담도 없고 원어민 발음 들어가며 내 발음도 계속해서 말해볼 수 있어서 이것만 꾸준히 해도 고민이던 영어 스피킹 실력이 좋아질 것 같아서 기대가 돼요!", "rating": 5, "date": "2026-02-09"}, {"content": "재미있고,영어 발음이 좋아져요!", "rating": 5, "date": "2026-04-08"}, {"content": "저에게는 발음을 잡아주는 최고의 앱입니다.", "rating": 5, "date": "2026-03-09"}, {"content": "유튜브에서 접하게 됐는데 생각보다 재밌네요. 개인적으론 내 발음과 모범발음을 들을 수 있는 기능과 상황극을 주어 내가 말한 대답이 적절한지 아닌지 알려줘서 좋습니다. 진지하게 구독해볼 생각입니다.", "rating": 5, "date": "2026-02-21"}, {"content": "왕초보부터 시작 중인데 좋은 것 같아요 UI도 단순하고 발음 연습하기도 너무 좋아요", "rating": 5, "date": "2026-02-11"}], "📚 학원/교재 대비 효율": [{"content": "영어학원에서 발음이 더 잘돼여!🩷", "rating": 5, "date": "2025-09-01"}, {"content": "1년에 13만원 결제한 보람이 있음 영어학원 대신 차라리 스픽 하셈 ㅈㅂ", "rating": 5, "date": "2025-05-19"}, {"content": "이정도면 영어학원 부럽지 않네요", "rating": 5, "date": "2026-03-25"}, {"content": "초창기 스픽때 가입하여 프리미엄 회원으로 5연차임.. 꾸준히 하다가 집안사정으로 잠시 등한시 하였으나.. 시중에 나와있는 그 어떤 영어앱중에 최강임. 영어학원 프랜차이즈 회사 근무하면서 다양한 회사의 소프트웨어 이용해보았지만.. AI시스템을 다룬 선구자는 단연 스픽임 강추!!@", "rating": 5, "date": "2026-03-19"}, {"content": "가성비 최고 언제든 마음껏 떠들수 있을때까지 금방 영어 도사 될것 같아요", "rating": 5, "date": "2026-03-02"}]}};
+
+// Tab switching
+function showTab(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// Rating chart
+const ratingCtx = document.getElementById('ratingChart').getContext('2d');
+new Chart(ratingCtx, {
+  type: 'bar',
+  data: {
+    labels: ['1★', '2★', '3★', '4★', '5★'],
+    datasets: [{
+      data: [DATA.rating_dist['1'], DATA.rating_dist['2'], DATA.rating_dist['3'], DATA.rating_dist['4'], DATA.rating_dist['5']],
+      backgroundColor: ['#f43f5e','#fb923c','#facc15','#60a5fa','#2e6da4'],
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } }
+  }
+});
+
+// Category chart
+const catCtx = document.getElementById('categoryChart').getContext('2d');
+const catData = DATA.category_dist;
+new Chart(catCtx, {
+  type: 'doughnut',
+  data: {
+    labels: Object.keys(catData),
+    datasets: [{
+      data: Object.values(catData),
+      backgroundColor: ['#2e6da4','#60a5fa','#34d399','#a78bfa','#f59e0b','#f43f5e','#fb923c','#cbd5e1'],
+      borderWidth: 2, borderColor: '#fff'
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'right', labels: { font: { size: 11 }, boxWidth: 12, padding: 8 } }
+    }
+  }
+});
+
+// Keywords
+const maxCount = Math.max(...DATA.keywords.map(k => k.count));
+const kwList = document.getElementById('kw-list');
+DATA.keywords.forEach((kw, i) => {
+  const pct = Math.round(kw.count / 3100 * 100 * 10) / 10;
+  const barW = Math.round(kw.count / maxCount * 100);
+  const div = document.createElement('div');
+  div.className = 'kw-item';
+  div.innerHTML = `
+    <div class="kw-rank ${i < 3 ? 'top3' : ''}">${i+1}</div>
+    <div class="kw-label">${kw.label}</div>
+    <div class="kw-bar-wrap">
+      <div class="kw-bar-bg"><div class="kw-bar-fill" style="width:${barW}%"></div></div>
+    </div>
+    <div class="kw-count">${kw.count}건</div>
+    <div class="kw-stars">${kw.ad_util || ''}</div>
+  `;
+  const panel = document.createElement('div');
+  panel.className = 'review-panel';
+  panel.innerHTML = `
+    <h4>대표 리뷰</h4>
+    <div class="review-quote">${(kw.example_review || '').replace(/\n/g, '<br>')}</div>
+  `;
+  div.addEventListener('click', () => {
+    const isOpen = panel.classList.contains('open');
+    document.querySelectorAll('.review-panel').forEach(p => p.classList.remove('open'));
+    document.querySelectorAll('.kw-item').forEach(d => d.classList.remove('selected'));
+    if (!isOpen) { panel.classList.add('open'); div.classList.add('selected'); }
+  });
+  kwList.appendChild(div);
+  kwList.appendChild(panel);
+});
+
+// Ad candidates
+const adGrid = document.getElementById('ad-grid');
+function renderAd(items) {
+  adGrid.innerHTML = '';
+  if (items.length === 0) {
+    adGrid.innerHTML = '<div class="empty">검색 결과가 없어요</div>';
+    return;
+  }
+  items.forEach(r => {
+    const stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+    const card = document.createElement('div');
+    card.className = 'ad-card';
+    card.innerHTML = `
+      <div class="stars">${stars} <span class="ad-badge">광고소재 후보</span></div>
+      <div class="content">${r.content.replace(/\n/g, '<br>')}</div>
+      <div class="meta">${r.date} · ${r.source}</div>
+    `;
+    adGrid.appendChild(card);
+  });
+}
+renderAd(DATA.ad_candidates);
+
+function filterAd() {
+  const q = document.getElementById('ad-search').value.toLowerCase();
+  if (!q) { renderAd(DATA.ad_candidates); return; }
+  renderAd(DATA.ad_candidates.filter(r => r.content.toLowerCase().includes(q)));
+}
+
+// Category table
+const catMap = {
+  '공부 같지 않은 재미': { type: 'pos', count: 247 },
+  '반복 학습 효과': { type: 'pos', count: 96 },
+  '말하기 실력 향상': { type: 'pos', count: 42 },
+  'AI 프리톡 긍정 경험': { type: 'pos', count: 28 },
+  '학원/교재 대비 효율': { type: 'pos', count: 23 },
+  '발음 교정 효과': { type: 'pos', count: 21 },
+  '개선요청/불만': { type: 'neg', count: 679 },
+  '기타': { type: 'gray', count: 1964 },
+};
+const tbody = document.getElementById('cat-tbody');
+const sortedCats = Object.entries(catMap).sort((a, b) => b[1].count - a[1].count);
+sortedCats.forEach(([cat, info]) => {
+  const pct = (info.count / 3100 * 100).toFixed(1);
+  const barW = Math.round(info.count / 3100 * 100);
+  const tagLabel = info.type === 'pos' ? '긍정' : info.type === 'neg' ? '불만' : '기타';
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><strong>${cat}</strong></td>
+    <td>${info.count.toLocaleString()}</td>
+    <td class="cat-pct">${pct}%</td>
+    <td><div class="cat-bar"><div class="cat-bar-fill ${info.type}" style="width:${barW}%"></div></div></td>
+    <td><span class="tag ${info.type}">${tagLabel}</span></td>
+  `;
+  tbody.appendChild(tr);
+});
+</script>
+</body>
+</html>

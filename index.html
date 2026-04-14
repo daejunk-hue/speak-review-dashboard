@@ -127,6 +127,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .full-item .fi-text{font-size:13px;line-height:1.7;color:#334155}
 .full-item .fi-cat{font-size:10px;padding:2px 7px;border-radius:20px;background:#f1f5f9;color:#475569;display:inline-block;margin-top:6px}
 .empty{text-align:center;color:#94a3b8;padding:36px;font-size:13px}
+
+.uc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:8px}
+.uc-card{border-radius:10px;padding:16px;cursor:pointer;transition:transform .15s,box-shadow .15s;border-left-width:4px;border-left-style:solid}
+.uc-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.uc-card-title{font-size:14px;font-weight:700;color:#1e293b;margin-bottom:6px}
+.uc-card-count{font-size:12px;color:#64748b}
+.uc-detail-header{margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #e2e8f0}
+.uc-review-item{padding:14px;border-radius:8px;margin-bottom:10px;background:#f8fafc;border:1px solid #e2e8f0}
+.uc-review-meta{display:flex;gap:8px;align-items:center;margin-bottom:8px;font-size:12px;color:#64748b}
+.uc-review-stars{color:#f59e0b;font-weight:700}
+.uc-review-content{font-size:13px;color:#1e293b;line-height:1.6}
 </style>
 </head>
 <body>
@@ -152,6 +163,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <button class="nav-btn" onclick="showTab('ad',this)">🎯 광고소재 후보</button>
   <button class="nav-btn" onclick="showTab('category',this)">📋 카테고리</button>
   <button class="nav-btn" onclick="showTab('allreviews',this)">📄 전체 리뷰</button>
+  <button class="nav-btn" onclick="showTab('usecase',this)">🧩 유즈케이스</button>
 </nav>
 
 <div class="container">
@@ -237,6 +249,63 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
+
+<!-- 유즈케이스 탭 -->
+<div class="section" id="tab-usecase">
+  <div class="card">
+    <div class="card-title">🧩 유즈케이스별 리뷰 분석</div>
+    <p style="color:#64748b;font-size:13px;margin:0 0 16px">유저가 Speak을 어떤 상황에서 활용하는지 카테고리별로 분석합니다. 카드를 클릭해 해당 리뷰를 확인하세요.</p>
+    <div class="uc-grid">
+<div class="uc-card" onclick="showUseCase('✈️ 여행')"
+      style="border-left:4px solid #3b82f6;background:#dbeafe">
+      <div class="uc-card-title">✈️ 여행</div>
+      <div class="uc-card-count">16개 리뷰</div>
+    </div>
+<div class="uc-card" onclick="showUseCase('💼 비즈니스·직장')"
+      style="border-left:4px solid #f59e0b;background:#fef3c7">
+      <div class="uc-card-title">💼 비즈니스·직장</div>
+      <div class="uc-card-count">11개 리뷰</div>
+    </div>
+<div class="uc-card" onclick="showUseCase('🔰 왕초보')"
+      style="border-left:4px solid #10b981;background:#d1fae5">
+      <div class="uc-card-title">🔰 왕초보</div>
+      <div class="uc-card-count">101개 리뷰</div>
+    </div>
+<div class="uc-card" onclick="showUseCase('📈 중급 이상')"
+      style="border-left:4px solid #8b5cf6;background:#ede9fe">
+      <div class="uc-card-title">📈 중급 이상</div>
+      <div class="uc-card-count">5개 리뷰</div>
+    </div>
+<div class="uc-card" onclick="showUseCase('👩‍💼 4050세대')"
+      style="border-left:4px solid #ec4899;background:#fce7f3">
+      <div class="uc-card-title">👩‍💼 4050세대</div>
+      <div class="uc-card-count">17개 리뷰</div>
+    </div>
+<div class="uc-card" onclick="showUseCase('📝 OPIc·영어시험')"
+      style="border-left:4px solid #f97316;background:#fff7ed">
+      <div class="uc-card-title">📝 OPIc·영어시험</div>
+      <div class="uc-card-count">5개 리뷰</div>
+    </div>
+<div class="uc-card" onclick="showUseCase('👶 자녀와 함께')"
+      style="border-left:4px solid #0ea5e9;background:#e0f2fe">
+      <div class="uc-card-title">👶 자녀와 함께</div>
+      <div class="uc-card-count">15개 리뷰</div>
+    </div>
+<div class="uc-card" onclick="showUseCase('🚗 출퇴근·이동 중')"
+      style="border-left:4px solid #22c55e;background:#f0fdf4">
+      <div class="uc-card-title">🚗 출퇴근·이동 중</div>
+      <div class="uc-card-count">12개 리뷰</div>
+    </div>
+    </div>
+  </div>
+  <div class="card" id="uc-detail" style="display:none">
+    <div class="uc-detail-header">
+      <div class="card-title" id="uc-detail-title"></div>
+      <div id="uc-detail-count" style="color:#64748b;font-size:13px;margin-top:4px"></div>
+    </div>
+    <div id="uc-review-list"></div>
+  </div>
+</div>
 </div><!-- /container -->
 
 <script>
@@ -615,6 +684,38 @@ renderCategory();
 fullFiltered = filteredReviews.slice();
 document.getElementById('all-count-label').textContent=`(${fullFiltered.length.toLocaleString()}건)`;
 renderFullPage();
+
+// ── 유즈케이스 탭 ──
+const USECASE_DATA = {"✈️ 여행": {"count": 16, "keywords": ["여행", "해외", "공항", "호텔", "현지", "외국에서", "해외에서", "유럽", "미국에서", "영국에서", "일본에서", "캐나다", "현지인", "여행 가서", "여행가서", "여행 가기", "해외 나가"], "reviews": [{"author": "이소현", "title": "", "content": "안녕하세요 스픽이라는 앱을 깔게된 사람입니다 일단 좋은점을 알려드릴게요, al가 영어 고민도 알려주고,영어발음, 영어공부에 대한게 많은 앱인것 같아요 제 기준에서는 좋은 앱인것 같기도 합니다. 영어를 잘모르시거나 영어공부가 필요한 분들에게 강력추천! 드립니다. 이 앱에서 영어공부를 많이하면 나중에 미래에 미국나라 다른나라에 가보며 세계 여행을 하면서 자연스럽게 외국인과 함께 의사소통을 할수있을것 같습니다. 저는 별점 5점을 드립니다", "rating": 5, "date": "2025-07-11", "source": "Google Play", "category": "기타"}, {"author": "황준호", "title": "", "content": "읽고 이해하는 수준에 비해 말하기 수준이 아주 낮아 답답했었는데 스피킹연습을 반복적으로 훈련할 수 있어 아주 도움이되네요 내발음 확인을 통해서 문장 전체의 리듬 까지 학습할 수 있어 효과적이네요 AI 시대 맞이한 덕을 많이 봅니다 캐나다 어학원에서 어학연수히는 학생들을 많이 만났었는데 ~ ~ ~ 스피크와 같은 프로그램으로 충분히 훈련 한 후에 가면 보다 효과적인 연수가 될 것 같습니다", "rating": 5, "date": "2025-05-03", "source": "Google Play", "category": "🔄 반복 학습 효과"}, {"author": "다빈", "title": "", "content": "영어 나름 잘했다고 생각해서 별 생각 없이 외국 갔다가 충격받아서 다시 공부합니다. 머릿속에서만 맴돌고 혀가 굳어서 쉬운 내용도 실제 대화가 안되더라구요..! 더듬거리게 되고 부족한 사람 같이 보이게 돼요 ㅠㅠ 짧은 문장 연습 - 실제 사람이 나오는 실전 대화 순서라 만족스럽네요. 여행 전 외국 단체 액티비티 있으신 분들 꼭 하고 가세요! 스피킹 약한 한국인한테 꼭 필요한 앱입니다!", "rating": 5, "date": "2025-04-30", "source": "Google Play", "category": "기타"}, {"author": "피아몽", "title": "", "content": "두달 정도 매일 하다보니까 영어말하기 울렁증이 거의 사라졌어요 ㅎㅎ 아직 어버버하지만 그래도 생각을 말로 표현하거나 간단한 여행영어는 충분해요. 스픽 계속 하면서 영어로 책 읽기 강의 듣기 등등 좀 더 길고 복잡한 문장들을 빨리 이해할 수 있도록 훈련하려고 해요 좋은 서비스 만들어주셔서 감사합니다", "rating": 5, "date": "2026-01-24", "source": "Google Play", "category": "기타"}, {"author": "정정애", "title": "", "content": "왕초보이며 77세의 할머니이지만 열심히 따라해보니 재미도 있고 점점 발음도 좋아지는것 같네요 새로나오는 단어는 좀 더 공부시켜주면 좋겠고 열심히 공부해서 80세가 될때 혼자서 당당히 여행할 수 있도록 할께요", "rating": 5, "date": "2026-01-17", "source": "Google Play", "category": "기타"}, {"author": "김지연", "title": "", "content": "쓰고 읽기는 어느정도 한다고 자신있게 외국 나갔다가 말하기가 제일 기본이라는 사실을 뼈저리게 체감하고 다음 여행에는 버벅거리지 않겠다는 다짐으로 시작합니다!!", "rating": 5, "date": "2025-05-14", "source": "Google Play", "category": "기타"}, {"author": "이지호", "title": "", "content": "매일 연습하니 실력이 조금씩 업그레이드 되어서 매우 유용해요ㆍ영어권나라에 여행할때 입에서 말이 저절로 튀어나오는 자신감이 정말 좋아요 !!", "rating": 5, "date": "2026-03-13", "source": "Google Play", "category": "기타"}, {"author": "ㅍㅇㅋㅅ", "title": "정말 필요한 핵심 표현만 추려 쏙쏙!", "content": "아이와 해외 여행갈 때 쓸 수 있는 표현 등을 알기 쉽게 설명하고 익힐 수 있도록 기회를 충분히 주는 구조라 계속 수강 계획!", "rating": 5, "date": "2025-12-30", "source": "App Store", "category": "기타"}, {"author": "쵭빠", "title": "", "content": "재미도 있고 해외 출장가기전 2달 빠싹연습하고 갔는데 순간 단어, 표현이 어렴풋하게 기억이 나서 많은 도움이 됐어요", "rating": 5, "date": "2025-05-04", "source": "Google Play", "category": "기타"}, {"author": "이소민", "title": "", "content": "매일 스픽으로 영어공부를 하고있는데 아직 문장만들기는 잘 안되네요ㅜㅜ 꾸준히해서 여행영어 정도 하고 싶어요!", "rating": 5, "date": "2025-08-29", "source": "Google Play", "category": "기타"}]}, "💼 비즈니스·직장": {"count": 11, "keywords": ["비즈니스", "업무", "회의", "직장", "출장", "발표", "거래처", "외국계", "회사에서", "취업", "영어 면접", "직장에서", "사무", "업무용", "일하면서", "직장인", "사회생활"], "reviews": [{"author": "FossBrian", "title": "영어학원의 시대는 스픽으로 인해 끝났다", "content": "탄탄한 프로그램과 주옥같은 현실감 있는 표현 매우 좋다. 과거 영어를 잘했었다고 자부했었으나, 시간이지나 50대가 되니 알던 표현도 잊어먹고, 매일 쓰는 표현에만 갖혀있어 업무에 답답함이 있었으나 Speak과 함께 매일매일 표현을 늘려간다면, 다시한번 도약할 수 있을 것 같다.  한가지 부탁하고 싶은 것은, 전체대화의 텍스트를 제공해주었으면 한다, 내가 배운 표현말고 강사들이 질문하는 모든 대화가 제공이 되었으면 한다.", "rating": 5, "date": "2025-08-03", "source": "App Store", "category": "기타"}, {"author": "전민경", "title": "", "content": "회사에서 제공하는 수업으로 잘 듣고 있습니다. 그런데, 어제부터 AI와 대화하는 프리토킹 수업을 완료해도 point가 0으로 표시되고, 시간도 올라가지 않습니다. 다른 수업은 정상적으로 포인트가 쌓이는데, AI 대화 수업은 왜 0 포인트 인가요? 11월 5일 저녁부터 그런 증상이 시작됐고, 오늘아침에도 동일합니다. 확인 부탁드립니다.", "rating": 5, "date": "2025-11-06", "source": "Google Play", "category": "🤖 AI 프리톡 긍정 경험"}, {"author": "woolee cho", "title": "", "content": "AI와 시나리오 롤플레이를 만들고 대화가 가능하고, 업무 관련 시나리오를 만들어 연습하니 실제 필요한 영어를 익히는데 정말 좋습니다. ㅍ랙ㅌ카도 써봤는데 스픽이 훨씬 대화하기 좋다고 느껴지네요.", "rating": 5, "date": "2025-12-12", "source": "Google Play", "category": "🤖 AI 프리톡 긍정 경험"}, {"author": "쵭빠", "title": "", "content": "재미도 있고 해외 출장가기전 2달 빠싹연습하고 갔는데 순간 단어, 표현이 어렴풋하게 기억이 나서 많은 도움이 됐어요", "rating": 5, "date": "2025-05-04", "source": "Google Play", "category": "기타"}, {"author": "dahye son", "title": "", "content": "그동안 영어 어플중에 최고닷!!! 회사에서 지원 끊기고 내돈내산으로 할정도로 루틴만들기 최고다", "rating": 5, "date": "2025-10-29", "source": "Google Play", "category": "기타"}]}, "🔰 왕초보": {"count": 101, "keywords": ["왕초보", "처음", "기초", "입문", "영어를 못", "못했는데", "영어가 안", "잘 못", "못하는데", "영어 못", "기초부터", "첫걸음", "영어공부 시작", "처음 시작", "처음으로"], "reviews": [{"author": "‘Dkgusim", "title": "Speak 좋네요.", "content": "마음먹고 스픽 어플만 공부해도 원어민 되겠네요. 저는 2년째 스픽으로 공부하고 있습니다. 꾸준히 힘들어도 포기하지 말고, 나를 사랑하는 마음으로 공부 하다보면 어느새 제 입에서 줄줄줄 영어가 나오네요. 요즘 시대 너무 좋아졌어요. 저는 중1때 처음 영어를 배웠던 시대에 태어났었는데… 요즘 아이들 맘만 먹으면 이렇게 잘 공부 할수 있어요. 가격또한 맘에 쏙 듭니다. 부담이 없는데 학습의 질은 높아요-!!!", "rating": 5, "date": "2026-02-26", "source": "App Store", "category": "기타"}, {"author": "캘리마루", "title": "", "content": "스픽 따라하면 스펙이 쌓여요. 처음엔 문장을 전체 다 보여주고 반복하면서 블랭크로 나오는데 문장을 보고 영어를 하는 것과 그냥 말하는 것은 천지차이. 영어 공부를 하면서 많이 본 것을 영어공부라고 착각하고 살았네요. 초창기에 공부했던 스픽. 무료 체험기간이라 다시 써봤는데 선생님들 나이드신 모습을 보니 기분이 이상해요. 예나 지금이나 ㅎㅎ 연기파 스픽 선생님들 최고!", "rating": 5, "date": "2025-12-30", "source": "Google Play", "category": "🔄 반복 학습 효과"}, {"author": "chiro chiro", "title": "", "content": "정기 결재하고 왕초보코스부터 한달이상 꾸준히 하고 있습니다. 그런데 궁금한게... 코스가 업데이트 되는것 같은데, 새로운 초보 코스들이 생기고 기존코스는 업데이트가 되지 않지만 수강은 할 수 있다. 이렇게 나와요. 지금 왕초보2탄으로 넘어가려고 하는데, 새로운 코스로 이동해야하는건지? 그리고 기존 코스는 업데이트가 안된다는것은 무슨 의미인지 궁금해요.", "rating": 5, "date": "2025-10-30", "source": "Google Play", "category": "기타"}, {"author": "편리를 추구하는 사람", "title": "생각보다 재밌습니다", "content": "처음에는 이걸 꾸준히 할만한 재미라던가 그런 요소가 있을까 싶었는데\n계속 진행하다보니 영어로 말하는 재미가 붙고 막 말해도 알아서 교정 해주는 기능 덕분에 알아가는 문법이 정말 많습니다\n가격이 부담 된다는 분들 간혹 보이시던데\n게임할 돈,군것질 할 돈 조금 모아서라도 해보세요\n생각보다 재밌습니다ㅋㅋㅋ\n단, 혼자 있을 때에만..", "rating": 5, "date": "2025-12-28", "source": "App Store", "category": "😄 재미·습관 형성"}, {"author": "해나07", "title": "스픽 초등버전도 부탁드립니다", "content": "정말 스픽만큼 스피킹을 잘 시켜주는 앱은 없다고 생각합니다. 아들에게도 스픽을 왕초보모드로 시켜주고 있는데 이게 성인을 염두에 두고 만든 앱이다보니 예문이 초등생이 이해하기 힘들거나 공감하기 힘든 것들이 간간히 있더라구요. 다른 어린이용 앱도 많지만 스픽만큼 만족스러운 곳이 없어요…🥹", "rating": 5, "date": "2025-09-12", "source": "App Store", "category": "기타"}, {"author": "말또치", "title": "스픽결제를 했는데.", "content": "스픽 결제 후 며칠 못들어가다 들어갔는데, 재로그인을 하라해서 로그인을 했습니다. 결제를 한게 애플계정인지 구글인지 카톡인지 몰라 제일 자주 사용하는 구글로 로그인을 했는데\n처음 접속했을 때 이유를 묻는 화면이 떠요ㅠ 로그아웃을 하고싶은데 따로 창이 없어서 해결 방법알고싶습니다", "rating": 5, "date": "2025-07-18", "source": "App Store", "category": "기타"}, {"author": "알럽망고", "title": "", "content": "다 좋은데 스피킹 딜레이는 어떻게 안될까요? 스피킹 하라고 해서 하면 처음 몇 단어는 무시 됩니다. 그래서 꼭 기다렸다가 하게 되네요 그리고 말하는 순서에 상관없이 단어만 말하면 되는데 이것도 약간 실력을 떨어트리게 되는것 같아요 차라리 처음부터 다시 말하게 하면 안될까요?", "rating": 5, "date": "2025-07-17", "source": "Google Play", "category": "기타"}, {"author": "Best Choi", "title": "", "content": "오늘 처음 공부해 봤는데 흥미로웠습니다. 문장을 말하는 모범 발음과 내 발음을 비교해 듣고 수정할 수 있고, 실제 상황처럼 대화 연습까지 할 수 있어 유익했습니다. 발음 표기도 있어 잘 모르는 단어를 발음할 때 도움 되었습니다. 일대일 수업 받는 느낌이 들어 좋았습니다.", "rating": 5, "date": "2025-08-31", "source": "Google Play", "category": "🎤 발음 교정 효과"}, {"author": "이윤영", "title": "", "content": "다양한 주제로 대화하고 틀린 문장은 리뷰를 통해 복습시켜주고 이런저런 대화 하다 보면 재미 있어서 자꾸 자정을 넘기네요 상황에 따라 단어 공부만 해도 되고 기초 공부도 탄탄히 할수 있어서 좋아요 챌린지도 다양하게 있어서 경품도 노리고 공부도 많이 하게 되네요", "rating": 5, "date": "2025-04-18", "source": "Google Play", "category": "🔄 반복 학습 효과"}, {"author": "장서원", "title": "", "content": "빠트린 날도 간혹 있었지만 이렇게 오래 끈기있게 공부하게 해준 앱은 스픽이 처음이에요! 일단 레슨 호흡이 짧아 시간여유가 부족한 날에도 부담이 없고 계속적으로 반복학습을 시켜줘서 표현을 잘 기억하게 해주는것도 이 앱의 큰 장점인것 같아요. 강추합니다!", "rating": 5, "date": "2025-06-06", "source": "Google Play", "category": "기타"}]}, "📈 중급 이상": {"count": 5, "keywords": ["중급", "어느정도", "기초는 있", "읽기는", "문법은 알", "토익", "알고는 있", "독해는", "알지만 말", "기초는 되", "영어는 좀"], "reviews": [{"author": "837382971", "title": "업데이트 후 진도 반영이 안 된 것 같습니다", "content": "중급 1 코스 완료하고 중급 2 코스 진행 중인데 중급 1 코스가 진도율 40퍼센트로 뜨고 중급 2도 분명 어제까지 했던 수업이 하지 않았던 것으로 뜹니다ㅠㅠㅠ", "rating": 5, "date": "2025-10-07", "source": "App Store", "category": "기타"}, {"author": "김지연", "title": "", "content": "쓰고 읽기는 어느정도 한다고 자신있게 외국 나갔다가 말하기가 제일 기본이라는 사실을 뼈저리게 체감하고 다음 여행에는 버벅거리지 않겠다는 다짐으로 시작합니다!!", "rating": 5, "date": "2025-05-14", "source": "Google Play", "category": "기타"}, {"author": "SooHyeon Heo", "title": "", "content": "몇년만에 다시 등록하는데 많이 바뀐 것 같아요. 너무 좋습니다. 올해는 중급 수준으로 스피킹 해보려고 합니당.", "rating": 5, "date": "2026-01-07", "source": "Google Play", "category": "기타"}, {"author": "하영", "title": "", "content": "다른 앱 썼을때 너무 기분나쁜 경험이 있었는데 스픽은 수업을 잘 들을수 있도록 코치해줘서 결제하고 하루도 안빠졌네요 한국에서 대학까지 아니더라도 보통의 교육을 받은 사람이라면 영어는 배웠을테니 아예 모르지는 않을텐데 입으로 말하는게 익숙치 않아서 못하는 분들이 꽤 있을것같아요 글로는 일상적인 문장들을 어느정도 이해를 하는데 말로는 어려운 사람이라면 꼭 스픽 써보세요 입이 조금씩 트이기 시작해요 별한개 뺀 이유는 제대로 몇번을 발음했는데도 몇번 인식을 못하는 경우들이 있어서 뺐어요", "rating": 4, "date": "2025-07-28", "source": "Google Play", "category": "기타"}]}, "👩‍💼 4050세대": {"count": 17, "keywords": ["40대", "50대", "60대", "나이가", "늦은 나이", "중년", "나이 먹", "나이에", "40살", "50살", "60살", "장년", "주부", "할머니", "할아버지", "어른이 되", "어른도"], "reviews": [{"author": "FossBrian", "title": "영어학원의 시대는 스픽으로 인해 끝났다", "content": "탄탄한 프로그램과 주옥같은 현실감 있는 표현 매우 좋다. 과거 영어를 잘했었다고 자부했었으나, 시간이지나 50대가 되니 알던 표현도 잊어먹고, 매일 쓰는 표현에만 갖혀있어 업무에 답답함이 있었으나 Speak과 함께 매일매일 표현을 늘려간다면, 다시한번 도약할 수 있을 것 같다.  한가지 부탁하고 싶은 것은, 전체대화의 텍스트를 제공해주었으면 한다, 내가 배운 표현말고 강사들이 질문하는 모든 대화가 제공이 되었으면 한다.", "rating": 5, "date": "2025-08-03", "source": "App Store", "category": "기타"}, {"author": "은주장", "title": "", "content": "학원을 다니고 싶었지만 비용과 시간 번거로움때문에 결혼하고 지금까지 미뤄왔던 영어회화를 스픽으로 매일 즐겁게 공부하고 있습니다 가장 필요한 설명을 쉽고 간결하게 설명해주시는 선생님 충분한 연습 일대일 대화 학원 다니는거 보다 더 효율적인 공부가 되고 있어요 요즘은 만나는 지인들에게도 꼭 추천합니다 저는 55세 주부입니다", "rating": 5, "date": "2026-02-26", "source": "Google Play", "category": "📚 학원/교재 대비 효율"}, {"author": "Come on", "title": "", "content": "이 나이에 다람쥐 챗바퀴 돌듯 했던 영어초보의 단계에서 벗어나서 영어고급 단계로 나아가려는 강한 액션을 스픽을 프리미엄 과정 통해 나타냈으니 \"이 나이에 내가 하리?\" \"그럼 내가 아니면 누가 하겠니!\" 나 자신에게 자문자답하며 열심히 해보자 다짐한다. 화이팅 ~~~~~~~~~~!!!", "rating": 5, "date": "2026-02-23", "source": "Google Play", "category": "기타"}, {"author": "서진아", "title": "", "content": "너무 좋은 앱입니다!! 오랫동안 영어를 포기 했던 저에게는 샘과 같은 존재입니다. 발음 교정도 되고 단어 공부도 되고 문법도 그냥 알게되니 안할수가 없네요~~~늦은 나이지만 이번엔 영어를 완벽하게 구사 해 보겠습니다!!", "rating": 5, "date": "2025-07-02", "source": "Google Play", "category": "🎤 발음 교정 효과"}, {"author": "정정애", "title": "", "content": "왕초보이며 77세의 할머니이지만 열심히 따라해보니 재미도 있고 점점 발음도 좋아지는것 같네요 새로나오는 단어는 좀 더 공부시켜주면 좋겠고 열심히 공부해서 80세가 될때 혼자서 당당히 여행할 수 있도록 할께요", "rating": 5, "date": "2026-01-17", "source": "Google Play", "category": "기타"}, {"author": "이상현", "title": "", "content": "늦은 나이에 영어를 시작하는것에 대해 부담이 많이 되어서 여러회화앱들을 설치하고 지우기를 반복하다 스픽을 만나 정말 재미있게 회화를 배우고 있어요. 초보자도 쉽게 배울수 있는 스픽 적극적으로 추천합니다.", "rating": 5, "date": "2025-10-06", "source": "Google Play", "category": "😄 재미·습관 형성"}, {"author": "아노아노", "title": "", "content": "처음에는 과연 내가 할수 있을까? 반신반의 했는데 이제3달 가까이 하라는되로 했더니 조금씩 쟈신이 생기기 시작했어요.60대 후반인데 놀랍네요", "rating": 5, "date": "2026-02-13", "source": "Google Play", "category": "기타"}, {"author": "elohist", "title": "", "content": "오늘 처음 사용해 보았습니다. 제가 나이가 있어 그러는지 아직은 반복적으로 자꾸 나와 쉽게 접근할수 있어 좋아요. 더 사용해 보겠습니다.", "rating": 5, "date": "2025-12-17", "source": "Google Play", "category": "🔄 반복 학습 효과"}, {"author": "미소녀광", "title": "말을 많이 할수 있어 좋은거 같음", "content": "중년도 하다보면 자신감이 생기는 거 같음. 딱 내수준이다 싶음.. 하지만 아이패드 에어 m3 유저인데 가끔 튕기는건 문제 있네.", "rating": 5, "date": "2025-08-24", "source": "App Store", "category": "🗣️ 말하기 실력 향상"}, {"author": "강명선", "title": "", "content": "이제 시작해서 아직은 재밌어요 번복에서 알아듣기 쉬웠어요. 나같은 60대 할머니가 공부하기에 안성맞춤 인거같아요.", "rating": 5, "date": "2025-10-05", "source": "Google Play", "category": "😄 재미·습관 형성"}]}, "📝 OPIc·영어시험": {"count": 5, "keywords": ["오픽", "opic", "OPIc", "OPIC", "오픽 준비", "토익스피킹", "영어 시험", "스피킹 시험", "시험 준비", "오픽준비", "오픽공부", "오픽 공부"], "reviews": [{"author": "정병혁", "title": "", "content": "내가 할수있는 그리고 따라갈수 있는만큼 배울수 있어 너무좋다. 추가로 오픽 문장을 AI의 질문을 받으며만들어 나갈수있어 차근차근 나의 무기를 만들어가는 것 같아 뿌듯하다. 오늘보다 나은 내일이라면 지금이순간 투자는 아깝지 않을것같다.", "rating": 5, "date": "2025-04-27", "source": "Google Play", "category": "기타"}]}, "👶 자녀와 함께": {"count": 15, "keywords": ["아이", "자녀", "아들", "딸", "초등", "애한테", "아이한테", "아이도", "자녀도", "우리 아이", "아이와", "자녀와"], "reviews": [{"author": "‘Dkgusim", "title": "Speak 좋네요.", "content": "마음먹고 스픽 어플만 공부해도 원어민 되겠네요. 저는 2년째 스픽으로 공부하고 있습니다. 꾸준히 힘들어도 포기하지 말고, 나를 사랑하는 마음으로 공부 하다보면 어느새 제 입에서 줄줄줄 영어가 나오네요. 요즘 시대 너무 좋아졌어요. 저는 중1때 처음 영어를 배웠던 시대에 태어났었는데… 요즘 아이들 맘만 먹으면 이렇게 잘 공부 할수 있어요. 가격또한 맘에 쏙 듭니다. 부담이 없는데 학습의 질은 높아요-!!!", "rating": 5, "date": "2026-02-26", "source": "App Store", "category": "기타"}, {"author": "Y", "title": "", "content": "스픽 정말 고마워요💕💕💕💕💕 앞으로도 잘 쓰겠습니다💕 -- 스픽 덕분에 정말 빠른 시간 내에 필요한 어학 성적 정말 빨리 딸 수 있었어요...🥺💙 다만 그 이후로 영어를 손 놨... 꺅... 오늘 다시 시작하려구요!! 할인가 아닌 가격으로 결제되었을 때 밤중인데도 대처 정말 빠르게 해주셨구요(죄송하고 감사해요..) 수업도 연습도 다 너무 좋아요! 앞으로 더 더 잘 이용하겠습니다! 스픽... 고마워요💙", "rating": 5, "date": "2025-06-23", "source": "Google Play", "category": "기타"}, {"author": "M K", "title": "", "content": "1. 스픽을 구독한다는 것은 스픽AI가 얼마나 멍청한지 깨닫는 과정에 있다는 것이다 2. 스픽을 구독해지한다는 것은 다른 영어회화어플 AI들이 얼마나 더 멍청한지 깨닫는 과정에 있다는 것이다 3. 스픽을 다시 구독한다는 것은 분하지만 저 사실들을 받아들이고 스픽정도면 성능이 모든 영어회화 어플 들 중에서 적어도 탑 2-3안에 들어간다는 것을 인정하는 것이다", "rating": 5, "date": "2025-07-06", "source": "Google Play", "category": "기타"}, {"author": "해나07", "title": "스픽 초등버전도 부탁드립니다", "content": "정말 스픽만큼 스피킹을 잘 시켜주는 앱은 없다고 생각합니다. 아들에게도 스픽을 왕초보모드로 시켜주고 있는데 이게 성인을 염두에 두고 만든 앱이다보니 예문이 초등생이 이해하기 힘들거나 공감하기 힘든 것들이 간간히 있더라구요. 다른 어린이용 앱도 많지만 스픽만큼 만족스러운 곳이 없어요…🥹", "rating": 5, "date": "2025-09-12", "source": "App Store", "category": "기타"}, {"author": "J Hara^^", "title": "볼룸 컨트롤 질문", "content": "만족해서 꾸준히 이용하고 있습니다. 주로 아이폰에서 에어팟으로 듣는데 지멋대로 볼륨이 줄어들어요 다른어플들에서는 그렇지않고 스픽에서만 그렇습니다. 그래서 에어팟문제같지는 않습니다. 혹시 제가 해결할수있는부분이 있나요?", "rating": 5, "date": "2025-07-24", "source": "App Store", "category": "기타"}, {"author": "오근영", "title": "", "content": "하루에 거의 1~2시간 공부를 하는데 반복학습을 통해 어린아이가 말을 배우듯이 암기하도록 해줍니다. 이제 1주일 했을 뿐인데, 학원에 1달 다닌 것보다 훨씬 효과가 있습니다 정말 적극적으로 추천해 드립니다", "rating": 5, "date": "2025-11-16", "source": "Google Play", "category": "📚 학원/교재 대비 효율"}, {"author": "떠뚜야미", "title": "인식이 너무 구림..", "content": "이전엔 말 잘 알아듣곤 했는데 지금은 내 말 자체를 너무 못알아들음.. 전혀 다르게 인식해버려서 대화가 갑자기 튀어버림;; 이잔 대회로 돌아가는 기능도 있으면 좋겠고.. 구독 끊을까 심각하게 고민중..", "rating": 5, "date": "2026-03-05", "source": "App Store", "category": "개선요청/불만"}, {"author": "ㅇㅇ밍", "title": "취소부탁드립니다.", "content": "아이가 제폰으로 어플을 깔았다가 지운것같아요.  어플이있지도않은데 1년치 결재가되어있네요.. 구독취소는 해놓은상태인데 1년치라서 26년까지쓸수있다고나옵니다. 정말사용한적이없는데 취소부탁드립니다.", "rating": 5, "date": "2025-05-21", "source": "App Store", "category": "기타"}, {"author": "🎼🥸", "title": "진짜 짱 좋아요 ㅠㅠ", "content": "왜 이제야 이걸 깔았을까요?? 이런 후회가 밀려와요 ㅠㅠ 듀오링고랑 스픽 앱 둘다 하면 완전 똑쟁이가 될수 있을것 같은뎅 무조건 까세요 아이폰 필수 앱!!👍👍❤️", "rating": 5, "date": "2025-11-21", "source": "App Store", "category": "기타"}, {"author": "미소녀광", "title": "말을 많이 할수 있어 좋은거 같음", "content": "중년도 하다보면 자신감이 생기는 거 같음. 딱 내수준이다 싶음.. 하지만 아이패드 에어 m3 유저인데 가끔 튕기는건 문제 있네.", "rating": 5, "date": "2025-08-24", "source": "App Store", "category": "🗣️ 말하기 실력 향상"}]}, "🚗 출퇴근·이동 중": {"count": 12, "keywords": ["출퇴근", "운전", "지하철", "버스", "이동 중", "운전하면서", "출근길", "퇴근길", "대중교통", "이동하면서", "운전 중", "지하철에서", "버스에서"], "reviews": [{"author": "Gatsby Kim", "title": "", "content": "진짜 좋고 영어공부하는 데 이만한 어플이 없는 것 같습니다. 현재 유료 영어 어플만 3개 돌리는 중인데 스픽이 젤 좋아요. 그 중 가장 좋은 건 출퇴근 시간 운전하면서 하는 겁니다. 그런데 강사님 목소리들은 모기만한 소리인데 중간에 효과음이나 AI소리는 미친듯이 커서 블루투스로 하는데 진짜 소리에 놀라 기절하겠어요. ㅠㅠ 강사님 소리에 맞춰 볼륨 올리면 진짜 효과음은 전쟁나버림... 제발 따로 소리 조절할 수 있게 해주시거나 아니면 둘 소리 밸런스 좀 맞춰주세요 ㅋㅋㅋ.. ㅠㅠ ㅋㅋ 그리고 핸즈프리로 할 때 챕터 좀 더 빨리 넘어가게 조절할 수 있게 해주시고 AI음성도 배속으로 할 수 있음 좋을 것 같습니다.", "rating": 5, "date": "2025-08-22", "source": "Google Play", "category": "기타"}, {"author": "Alephrix", "title": "", "content": "따로 시간을 내기 힘들고, 겨우 낼 수 있는 시간이 일정치 않은 바쁜 성인의 입장에서 매우 훌륭합니다. 출퇴근길에 할 수 있는 것은 물론이고 아침에 달리기를 할 때 예전에는 유튜브 영상을 듣곤 했는데 스픽을 만난 후로는 뛸 때 스픽을 하니 30여분간 하게 돼서 무척 좋네요. 인공지능 기반이라 인건비가 적을 테니 가격도 부담이 적고요. 물론 교육 내용 자체도 충실하고 실용적입니다. 영어 학습의 패러다임을 바꿀 앱이라고 확신합니다~", "rating": 5, "date": "2025-10-18", "source": "Google Play", "category": "기타"}, {"author": "한영훈", "title": "", "content": "언제어디서든할수있어서 좋아요 하지만 운전하면서 할수 있게 버튼을 누르지 않고 하는 컨텐츠들이 많으면 좋겠네요", "rating": 5, "date": "2025-04-13", "source": "Google Play", "category": "기타"}]}};
+
+function showUseCase(cat) {
+  const d = USECASE_DATA[cat];
+  if (!d) return;
+  // 카드 active 표시
+  document.querySelectorAll('.uc-card').forEach(c => c.style.opacity = '0.6');
+  event.currentTarget.style.opacity = '1';
+  event.currentTarget.style.boxShadow = '0 0 0 2px #2e6da4';
+  
+  const detail = document.getElementById('uc-detail');
+  detail.style.display = 'block';
+  document.getElementById('uc-detail-title').textContent = cat;
+  document.getElementById('uc-detail-count').textContent = `총 ${d.count}개 리뷰 중 대표 ${d.reviews.length}개 표시`;
+  
+  const stars = r => '★'.repeat(r) + '☆'.repeat(5-r);
+  const list = d.reviews.map(r => `
+    <div class="uc-review-item">
+      <div class="uc-review-meta">
+        <span class="uc-review-stars">${stars(r.rating)}</span>
+        <span>${r.date}</span>
+        <span style="background:#e2e8f0;border-radius:4px;padding:1px 6px">${r.source}</span>
+      </div>
+      <div class="uc-review-content">${r.content}</div>
+    </div>
+  `).join('');
+  document.getElementById('uc-review-list').innerHTML = list || '<p style="color:#999">리뷰가 없습니다</p>';
+  detail.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
 </script>
 </body>
 </html>
